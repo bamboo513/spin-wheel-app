@@ -314,13 +314,10 @@ export default function WheelApp() {
             <div className="max-w-5xl mx-auto">
 
                 {/* Header */}
-                <header className="mb-10 text-center">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-linear-to-r from-pink-100 via-amber-100 to-indigo-100 text-neutral-700 text-xs font-medium mb-3 shadow-2xs">
-                        <Sparkles className="w-3.5 h-3.5 text-pink-500" />
-                        วงล้อสุ่มสีรุ้งพาสเทล
-                    </div>
-                    <h1 className="text-3xl font-light tracking-tight mb-2">Pastel Rainbow Spin Wheel</h1>
-                    <p className="text-sm text-neutral-500">หมุนสุ่มเลือกสิ่งที่คุณต้องการ ด้วยโทนสีรุ้งพาสเทลละมุนสดใส</p>
+                <header className="mb-5 text-center">
+                    <h1 className="text-neutral-700 text-3xl font-medium">
+                        วงล้อมรณะ
+                    </h1>
                 </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -338,11 +335,10 @@ export default function WheelApp() {
                                     <button
                                         key={col.id}
                                         onClick={() => handleSelectCollection(col.id)}
-                                        className={`px-3 py-1.5 text-xs rounded-lg transition-all cursor-pointer ${
-                                            activeCollectionId === col.id
-                                                ? "bg-neutral-900 text-white font-medium shadow-sm"
-                                                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-                                        }`}
+                                        className={`px-3 py-1.5 text-xs rounded-lg transition-all cursor-pointer ${activeCollectionId === col.id
+                                            ? "bg-neutral-900 text-white font-medium shadow-sm"
+                                            : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                                            }`}
                                     >
                                         {col.name}
                                     </button>
@@ -464,11 +460,10 @@ export default function WheelApp() {
                         <button
                             onClick={spinWheel}
                             disabled={isSpinning || currentItems.length === 0}
-                            className={`mt-4 px-8 py-3 rounded-xl text-sm font-medium tracking-wide transition flex items-center gap-2 shadow-sm cursor-pointer ${
-                                isSpinning
-                                    ? "bg-neutral-200 text-neutral-400 cursor-not-allowed"
-                                    : "bg-neutral-900 text-white hover:bg-neutral-800 active:scale-98"
-                            }`}
+                            className={`mt-4 px-8 py-3 rounded-xl text-sm font-medium tracking-wide transition flex items-center gap-2 shadow-sm cursor-pointer ${isSpinning
+                                ? "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                                : "bg-neutral-900 text-white hover:bg-neutral-800 active:scale-98"
+                                }`}
                         >
                             <RotateCw className={`w-4 h-4 ${isSpinning ? "animate-spin" : ""}`} />
                             {isSpinning ? "กำลังหมุน..." : "หมุนวงล้อ"}
