@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from "react";
 import { WheelCollection, WheelItem } from "@/types/wheel";
 import {
     Plus,
@@ -71,6 +71,53 @@ const DEFAULT_COLLECTIONS: WheelCollection[] = [
     },
 ];
 
+// Theme External Store เพื่อป้องกันปัญหา Hydration Mismatch ระหว่าง Server/Client
+const themeListeners = new Set<() => void>();
+
+function emitThemeChange() {
+    themeListeners.forEach((listener) => listener());
+}
+
+function subscribeTheme(callback: () => void) {
+    themeListeners.add(callback);
+    if (typeof window !== "undefined") {
+        window.addEventListener("storage", callback);
+        const mql = window.matchMedia("(prefers-color-scheme: dark)");
+        mql.addEventListener("change", callback);
+    }
+    return () => {
+        themeListeners.delete(callback);
+        if (typeof window !== "undefined") {
+            window.removeEventListener("storage", callback);
+            const mql = window.matchMedia("(prefers-color-scheme: dark)");
+            mql.removeEventListener("change", callback);
+        }
+    };
+}
+
+function getThemeSnapshot(): "light" | "dark" {
+    if (typeof window === "undefined") return "light";
+    const saved = localStorage.getItem("wheel-theme") as "light" | "dark" | null;
+    if (saved === "light" || saved === "dark") return saved;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function getThemeServerSnapshot(): "light" | "dark" {
+    return "light";
+}
+
+function saveTheme(nextTheme: "light" | "dark") {
+    if (typeof window !== "undefined") {
+        localStorage.setItem("wheel-theme", nextTheme);
+        if (nextTheme === "dark") {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
+        emitThemeChange();
+    }
+}
+
 export default function WheelApp() {
     const [collections, setCollections] = useState<WheelCollection[]>(DEFAULT_COLLECTIONS);
     const [activeCollectionId, setActiveCollectionId] = useState<string>("1");
@@ -78,19 +125,8 @@ export default function WheelApp() {
     const [newCollectionName, setNewCollectionName] = useState<string>("");
     const [newItemText, setNewItemText] = useState<string>("");
 
-    // สถานะ Theme Light / Dark (โหลดค่าเริ่มต้นจาก localStorage หรือ system preference)
-    const [theme, setTheme] = useState<"light" | "dark">(() => {
-        if (typeof window !== "undefined") {
-            const savedTheme = localStorage.getItem("wheel-theme") as "light" | "dark" | null;
-            if (savedTheme === "light" || savedTheme === "dark") {
-                return savedTheme;
-            }
-            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                return "dark";
-            }
-        }
-        return "light";
-    });
+    // จัดการ Theme ผ่าน useSyncExternalStore ปลอดภัยจาก Hydration mismatch
+    const theme = useSyncExternalStore(subscribeTheme, getThemeSnapshot, getThemeServerSnapshot);
 
     // สถานะ Dialog
     const [isManageDialogOpen, setIsManageDialogOpen] = useState<boolean>(false);
@@ -106,7 +142,7 @@ export default function WheelApp() {
 
     const activeCollection = collections.find((c) => c.id === activeCollectionId) || collections[0];
 
-    // ซิงค์ class .dark กับ <html>
+    // ซิงค์ class .dark กับ <html> เมื่อ theme เปลี่ยน
     useEffect(() => {
         if (theme === "dark") {
             document.documentElement.classList.add("dark");
@@ -117,11 +153,8 @@ export default function WheelApp() {
 
     // สลับ Theme Light / Dark
     const toggleTheme = () => {
-        setTheme((prev) => {
-            const nextTheme = prev === "light" ? "dark" : "light";
-            localStorage.setItem("wheel-theme", nextTheme);
-            return nextTheme;
-        });
+        const nextTheme = theme === "light" ? "dark" : "light";
+        saveTheme(nextTheme);
     };
 
     // รับสีของรายการ (ถ้ามี color ใน item ให้ใช้ หรือ fallback เป็นสีตาม index ในชุดสีรุ้งพาสเทล)
@@ -434,6 +467,7 @@ export default function WheelApp() {
                             className="rounded-full cursor-pointer hover:bg-muted"
                             title={theme === "dark" ? "เปลี่ยนเป็นโหมดสว่าง" : "เปลี่ยนเป็นโหมดมืด"}
                             aria-label="สลับโหมดสี"
+                            suppressHydrationWarning
                         >
                             {theme === "dark" ? (
                                 <Sun className="size-4 text-amber-400 transition-transform rotate-0" />
