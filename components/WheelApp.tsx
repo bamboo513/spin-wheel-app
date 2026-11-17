@@ -450,436 +450,404 @@ export default function WheelApp() {
         <main className="min-h-screen bg-background text-foreground transition-colors duration-200 p-4 sm:p-8 md:p-12">
             <div className="max-w-4xl mx-auto flex flex-col items-center">
 
-                {/* Header & Theme Toggle */}
-                <header className="w-full flex items-center justify-between mb-8 pb-4 border-b border-border/60">
-                    <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="gap-1.5 px-3 py-1 rounded-full text-xs font-medium border-border shadow-2xs">
-                            <Sparkles className="size-3.5 text-pink-500" />
-                            <span>Pastel Rainbow</span>
-                        </Badge>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={toggleTheme}
-                            className="rounded-full cursor-pointer hover:bg-muted"
-                            title={theme === "dark" ? "เปลี่ยนเป็นโหมดสว่าง" : "เปลี่ยนเป็นโหมดมืด"}
-                            aria-label="สลับโหมดสี"
-                            suppressHydrationWarning
-                        >
-                            {theme === "dark" ? (
-                                <Sun className="size-4 text-amber-400 transition-transform rotate-0" />
-                            ) : (
-                                <Moon className="size-4 text-slate-700 transition-transform rotate-0" />
-                            )}
-                        </Button>
-                    </div>
+                {/* Header */}
+                <header className="mb-5 text-center">
+                    <h1 className="text-neutral-700 text-3xl font-medium">
+                        วงล้อมรณะ
+                    </h1>
                 </header>
 
-                {/* ส่วนหัวข้อหลัก */}
-                <div className="text-center mb-6">
-                    <h1 className="text-3xl sm:text-4xl font-light tracking-tight mb-2">
-                        Pastel Rainbow Spin Wheel
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        หมุนสุ่มเลือกสิ่งที่ต้องการ ด้วยวงล้อสีรุ้งพาสเทล คลิกที่วงล้อหรือกดปุ่มเพื่อหมุน
-                    </p>
-                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-                {/* แถบสถานะหมวดหมู่ & ปุ่มเปิด Dialog ปรับแต่งตัวเลือก */}
-                <div className="flex flex-wrap items-center justify-center gap-2.5 mb-8">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                            setActiveTab("collections");
-                            setIsManageDialogOpen(true);
-                        }}
-                        className="rounded-full gap-1.5 text-xs cursor-pointer shadow-2xs"
-                    >
-                        <Bookmark className="size-3.5 text-pink-500" />
-                        <span>หมวดหมู่: {activeCollection.name}</span>
-                    </Button>
+                    {/* ส่วนซ้าย: เลือกคอลเลคชั่น และจัดการตัวเลือกรายการ (5 columns) */}
+                    <div className="lg:col-span-5 space-y-6">
 
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                            setActiveTab("items");
-                            setIsManageDialogOpen(true);
-                        }}
-                        className="rounded-full gap-1.5 text-xs cursor-pointer shadow-2xs"
-                    >
-                        <SlidersHorizontal className="size-3.5 text-indigo-500" />
-                        <span>ปรับแต่งตัวเลือก ({currentItems.length})</span>
-                    </Button>
-
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleRandomizeColors}
-                        className="rounded-full gap-1.5 text-xs cursor-pointer text-muted-foreground hover:text-foreground"
-                        title="สุ่มสีรุ้งพาสเทลใหม่ทุกช่อง"
-                    >
-                        <Shuffle className="size-3.5 text-pink-500" />
-                        <span>สุ่มสีรุ้ง</span>
-                    </Button>
-                </div>
-
-                {/* พื้นที่วงล้อสุ่ม (คลิกตรงวงล้อเพื่อสุ่มได้) */}
-                <div className="relative flex flex-col items-center justify-center p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-sm max-w-md w-full">
-
-                    {/* เข็มชี้หมุดด้านบน */}
-                    <div className="absolute top-4 sm:top-6 z-10 w-0 h-0 border-l-[11px] border-l-transparent border-r-[11px] border-r-transparent border-t-[20px] border-t-rose-500 drop-shadow-md" />
-
-                    {/* วงล้อ Canvas - คลิกเพื่อหมุนได้ */}
-                    <div
-                        role="button"
-                        tabIndex={0}
-                        aria-label="คลิกที่วงล้อเพื่อเริ่มหมุน"
-                        onClick={!isSpinning && currentItems.length > 0 ? spinWheel : undefined}
-                        onKeyDown={(e) => {
-                            if ((e.key === "Enter" || e.key === " ") && !isSpinning) {
-                                e.preventDefault();
-                                spinWheel();
-                            }
-                        }}
-                        className={cn(
-                            "relative my-3 select-none rounded-full transition-all duration-300 outline-none",
-                            !isSpinning && currentItems.length > 0
-                                ? "cursor-pointer hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl focus-visible:ring-4 focus-visible:ring-ring/40"
-                                : "cursor-not-allowed opacity-90"
-                        )}
-                        title={isSpinning ? "กำลังหมุน..." : "คลิกที่วงล้อเพื่อสุ่ม!"}
-                    >
-                        <canvas
-                            ref={canvasRef}
-                            width={340}
-                            height={340}
-                            className="max-w-full h-auto drop-shadow-md rounded-full"
-                        />
-                    </div>
-
-                    <p className="text-xs text-muted-foreground/80 mb-5 flex items-center gap-1.5">
-                        <Sparkles className="size-3 text-pink-500" />
-                        คลิกที่ตัววงล้อ หรือกดปุ่มด้านล่างเพื่อสุ่ม
-                    </p>
-
-                    {/* ปุ่มกดหมุนวงล้อ */}
-                    <Button
-                        size="lg"
-                        onClick={spinWheel}
-                        disabled={isSpinning || currentItems.length === 0}
-                        className={cn(
-                            "w-full sm:w-64 py-6 rounded-2xl text-base font-medium shadow-md transition-all cursor-pointer",
-                            isSpinning
-                                ? "opacity-70 cursor-not-allowed"
-                                : "hover:shadow-lg active:scale-98"
-                        )}
-                    >
-                        <RotateCw className={cn("size-4 mr-2", isSpinning && "animate-spin")} />
-                        {isSpinning ? "กำลังหมุน..." : "หมุนวงล้อ"}
-                    </Button>
-
-                    {/* แสดงตัวเลือกย่อด้านล่าง */}
-                    <div className="mt-6 pt-5 border-t border-border/60 w-full">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-                            <span>ตัวเลือกในวงล้อ:</span>
-                            <button
-                                onClick={() => {
-                                    setActiveTab("items");
-                                    setIsManageDialogOpen(true);
-                                }}
-                                className="text-primary hover:underline cursor-pointer"
-                            >
-                                จัดการรายการ
-                            </button>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
-                            {currentItems.map((item, idx) => {
-                                const color = getItemColor(item, idx);
-                                return (
-                                    <span
-                                        key={item.id}
-                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-muted/60 text-muted-foreground border border-border/50"
+                        {/* กล่องจัดการคอลเลคชั่น */}
+                        <div className="bg-white p-5 rounded-2xl border border-neutral-200 shadow-sm">
+                            <h2 className="text-sm font-medium text-neutral-700 mb-3 flex items-center gap-2">
+                                <Bookmark className="w-4 h-4 text-neutral-500" /> คอลเลคชั่นหมวดหมู่
+                            </h2>
+                            <div className="flex flex-wrap gap-2 mb-4">
+                                {collections.map((col) => (
+                                    <button
+                                        key={col.id}
+                                        onClick={() => handleSelectCollection(col.id)}
+                                        className={`px-3 py-1.5 text-xs rounded-lg transition-all cursor-pointer ${activeCollectionId === col.id
+                                            ? "bg-neutral-900 text-white font-medium shadow-sm"
+                                            : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                                            }`}
                                     >
-                                        <span
-                                            className="size-2 rounded-full shrink-0"
-                                            style={{ backgroundColor: color }}
-                                        />
-                                        <span className="truncate max-w-[120px]">{item.text}</span>
-                                    </span>
-                                );
-                            })}
+                                        {col.name}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* พื้นที่วงล้อสุ่ม (คลิกตรงวงล้อเพื่อสุ่มได้) */}
+                            <div className="relative flex flex-col items-center justify-center p-6 sm:p-10 rounded-3xl bg-card border border-border shadow-sm max-w-md w-full">
+
+                                {/* เข็มชี้หมุดด้านบน */}
+                                <div className="absolute top-4 sm:top-6 z-10 w-0 h-0 border-l-[11px] border-l-transparent border-r-[11px] border-r-transparent border-t-[20px] border-t-rose-500 drop-shadow-md" />
+
+                                {/* วงล้อ Canvas - คลิกเพื่อหมุนได้ */}
+                                <div
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label="คลิกที่วงล้อเพื่อเริ่มหมุน"
+                                    onClick={!isSpinning && currentItems.length > 0 ? spinWheel : undefined}
+                                    onKeyDown={(e) => {
+                                        if ((e.key === "Enter" || e.key === " ") && !isSpinning) {
+                                            e.preventDefault();
+                                            spinWheel();
+                                        }
+                                    }}
+                                    className={cn(
+                                        "relative my-3 select-none rounded-full transition-all duration-300 outline-none",
+                                        !isSpinning && currentItems.length > 0
+                                            ? "cursor-pointer hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl focus-visible:ring-4 focus-visible:ring-ring/40"
+                                            : "cursor-not-allowed opacity-90"
+                                    )}
+                                    title={isSpinning ? "กำลังหมุน..." : "คลิกที่วงล้อเพื่อสุ่ม!"}
+                                >
+                                    <canvas
+                                        ref={canvasRef}
+                                        width={340}
+                                        height={340}
+                                        className="max-w-full h-auto drop-shadow-md rounded-full"
+                                    />
+                                </div>
+
+                                <p className="text-xs text-muted-foreground/80 mb-5 flex items-center gap-1.5">
+                                    <Sparkles className="size-3 text-pink-500" />
+                                    คลิกที่ตัววงล้อ หรือกดปุ่มด้านล่างเพื่อสุ่ม
+                                </p>
+
+                                {/* ปุ่มกดหมุนวงล้อ */}
+                                <Button
+                                    size="lg"
+                                    onClick={spinWheel}
+                                    disabled={isSpinning || currentItems.length === 0}
+                                    className={cn(
+                                        "w-full sm:w-64 py-6 rounded-2xl text-base font-medium shadow-md transition-all cursor-pointer",
+                                        isSpinning
+                                            ? "opacity-70 cursor-not-allowed"
+                                            : "hover:shadow-lg active:scale-98"
+                                    )}
+                                >
+                                    <RotateCw className={cn("size-4 mr-2", isSpinning && "animate-spin")} />
+                                    {isSpinning ? "กำลังหมุน..." : "หมุนวงล้อ"}
+                                </Button>
+
+                                {/* แสดงตัวเลือกย่อด้านล่าง */}
+                                <div className="mt-6 pt-5 border-t border-border/60 w-full">
+                                    <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                                        <span>ตัวเลือกในวงล้อ:</span>
+                                        <button
+                                            onClick={() => {
+                                                setActiveTab("items");
+                                                setIsManageDialogOpen(true);
+                                            }}
+                                            className="text-primary hover:underline cursor-pointer"
+                                        >
+                                            จัดการรายการ
+                                        </button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+                                        {currentItems.map((item, idx) => {
+                                            const color = getItemColor(item, idx);
+                                            return (
+                                                <span
+                                                    key={item.id}
+                                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-muted/60 text-muted-foreground border border-border/50"
+                                                >
+                                                    <span
+                                                        className="size-2 rounded-full shrink-0"
+                                                        style={{ backgroundColor: color }}
+                                                    />
+                                                    <span className="truncate max-w-[120px]">{item.text}</span>
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                            </div>
+
                         </div>
-                    </div>
 
-                </div>
-
-            </div>
-
-            {/* ========================================================
+                        {/* ========================================================
                 Dialog: จัดการตัวเลือก & คอลเลคชั่นหมวดหมู่
                ======================================================== */}
-            <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
-                <DialogContent className="sm:max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <SlidersHorizontal className="size-4 text-primary" />
-                            จัดการตัวเลือก & หมวดหมู่
-                        </DialogTitle>
-                        <DialogDescription>
-                            เพิ่ม ลบ หรือแก้ไขตัวเลือกในวงล้อ และสลับคอลเลคชั่นหมวดหมู่ที่ต้องการ
-                        </DialogDescription>
-                    </DialogHeader>
+                        <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
+                            <DialogContent className="sm:max-w-lg">
+                                <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2">
+                                        <SlidersHorizontal className="size-4 text-primary" />
+                                        จัดการตัวเลือก & หมวดหมู่
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        เพิ่ม ลบ หรือแก้ไขตัวเลือกในวงล้อ และสลับคอลเลคชั่นหมวดหมู่ที่ต้องการ
+                                    </DialogDescription>
+                                </DialogHeader>
 
-                    <Tabs
-                        value={activeTab}
-                        onValueChange={(val) => setActiveTab(val as string)}
-                        className="mt-2"
-                    >
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="items" className="text-xs sm:text-sm">
-                                ตัวเลือกในวงล้อ ({currentItems.length})
-                            </TabsTrigger>
-                            <TabsTrigger value="collections" className="text-xs sm:text-sm">
-                                คอลเลคชั่นหมวดหมู่ ({collections.length})
-                            </TabsTrigger>
-                        </TabsList>
+                                <Tabs
+                                    value={activeTab}
+                                    onValueChange={(val) => setActiveTab(val as string)}
+                                    className="mt-2"
+                                >
+                                    <TabsList className="grid w-full grid-cols-2">
+                                        <TabsTrigger value="items" className="text-xs sm:text-sm">
+                                            ตัวเลือกในวงล้อ ({currentItems.length})
+                                        </TabsTrigger>
+                                        <TabsTrigger value="collections" className="text-xs sm:text-sm">
+                                            คอลเลคชั่นหมวดหมู่ ({collections.length})
+                                        </TabsTrigger>
+                                    </TabsList>
 
-                        {/* แท็บที่ 1: ปรับแต่งตัวเลือกในวงล้อ */}
-                        <TabsContent value="items" className="space-y-4 pt-3">
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs text-muted-foreground">
-                                    หมวดหมู่ปัจจุบัน: <strong>{activeCollection.name}</strong>
-                                </span>
-                                <div className="flex items-center gap-1.5">
-                                    <Button
-                                        variant="outline"
-                                        size="xs"
-                                        type="button"
-                                        onClick={handleRandomizeColors}
-                                        className="cursor-pointer"
-                                        title="สุ่มสีรุ้งพาสเทลใหม่ทุกช่อง"
-                                    >
-                                        <Shuffle className="size-3 text-pink-500 mr-1" /> สุ่มสี
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="xs"
-                                        type="button"
-                                        onClick={handleResetRainbowOrder}
-                                        className="cursor-pointer"
-                                        title="เรียงสีรุ้งตามสเปกตรัมธรรมชาติ"
-                                    >
-                                        <Palette className="size-3 text-indigo-500 mr-1" /> เรียงสีรุ้ง
-                                    </Button>
-                                </div>
-                            </div>
-
-                            {/* ฟอร์มเพิ่มรายการ */}
-                            <form onSubmit={handleAddItem} className="flex gap-2">
-                                <Input
-                                    type="text"
-                                    placeholder="พิมพ์ตัวเลือกใหม่..."
-                                    value={newItemText}
-                                    onChange={(e) => setNewItemText(e.target.value)}
-                                    className="text-xs sm:text-sm"
-                                />
-                                <Button type="submit" size="default" className="cursor-pointer shrink-0">
-                                    <Plus className="size-4 mr-1" /> เพิ่ม
-                                </Button>
-                            </form>
-
-                            {/* รายการตัวเลือก */}
-                            <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1 border border-border rounded-xl p-2 bg-muted/20">
-                                {currentItems.map((item, idx) => {
-                                    const color = getItemColor(item, idx);
-                                    return (
-                                        <div
-                                            key={item.id}
-                                            className="flex items-center justify-between px-3 py-2 bg-card rounded-lg text-xs sm:text-sm border border-border/70 transition-colors"
-                                        >
-                                            <div className="flex items-center gap-2.5 min-w-0">
-                                                <span
-                                                    className="size-3.5 rounded-full shrink-0 border border-black/10 shadow-2xs"
-                                                    style={{ backgroundColor: color }}
-                                                />
-                                                <span className="font-medium text-foreground truncate">
-                                                    {idx + 1}. {item.text}
-                                                </span>
+                                    {/* แท็บที่ 1: ปรับแต่งตัวเลือกในวงล้อ */}
+                                    <TabsContent value="items" className="space-y-4 pt-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-muted-foreground">
+                                                หมวดหมู่ปัจจุบัน: <strong>{activeCollection.name}</strong>
+                                            </span>
+                                            <div className="flex items-center gap-1.5">
+                                                <Button
+                                                    variant="outline"
+                                                    size="xs"
+                                                    type="button"
+                                                    onClick={handleRandomizeColors}
+                                                    className="cursor-pointer"
+                                                    title="สุ่มสีรุ้งพาสเทลใหม่ทุกช่อง"
+                                                >
+                                                    <Shuffle className="size-3 text-pink-500 mr-1" /> สุ่มสี
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="xs"
+                                                    type="button"
+                                                    onClick={handleResetRainbowOrder}
+                                                    className="cursor-pointer"
+                                                    title="เรียงสีรุ้งตามสเปกตรัมธรรมชาติ"
+                                                >
+                                                    <Palette className="size-3 text-indigo-500 mr-1" /> เรียงสีรุ้ง
+                                                </Button>
                                             </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon-xs"
-                                                type="button"
-                                                onClick={() => handleDeleteItem(item.id)}
-                                                disabled={currentItems.length <= 2}
-                                                className="text-muted-foreground hover:text-destructive cursor-pointer disabled:opacity-30"
-                                                title={currentItems.length <= 2 ? "ต้องมีอย่างน้อย 2 รายการ" : "ลบตัวเลือกนี้"}
-                                            >
-                                                <Trash2 className="size-3.5" />
-                                            </Button>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        </TabsContent>
 
-                        {/* แท็บที่ 2: จัดการคอลเลคชั่นหมวดหมู่ */}
-                        <TabsContent value="collections" className="space-y-4 pt-3">
-                            <div className="space-y-2">
-                                <span className="text-xs text-muted-foreground">
-                                    เลือกหมวดหมู่ที่ต้องการใช้งาน:
-                                </span>
-                                <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1 border border-border rounded-xl p-2 bg-muted/20">
-                                    {collections.map((col) => {
-                                        const isActive = col.id === activeCollectionId;
-                                        return (
-                                            <div
-                                                key={col.id}
-                                                className={cn(
-                                                    "flex items-center justify-between px-3 py-2 rounded-lg text-xs sm:text-sm border transition-all cursor-pointer",
-                                                    isActive
-                                                        ? "bg-primary text-primary-foreground border-primary font-medium"
-                                                        : "bg-card text-card-foreground border-border/70 hover:bg-muted"
-                                                )}
-                                                onClick={() => handleSelectCollection(col.id)}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    {isActive ? (
-                                                        <Check className="size-4" />
-                                                    ) : (
-                                                        <Bookmark className="size-3.5 text-muted-foreground" />
-                                                    )}
-                                                    <span>{col.name}</span>
-                                                    <span className={cn(
-                                                        "text-xs px-2 py-0.5 rounded-full",
-                                                        isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground"
-                                                    )}>
-                                                        {col.items.length} รายการ
-                                                    </span>
-                                                </div>
+                                        {/* ฟอร์มเพิ่มรายการ */}
+                                        <form onSubmit={handleAddItem} className="flex gap-2">
+                                            <Input
+                                                type="text"
+                                                placeholder="พิมพ์ตัวเลือกใหม่..."
+                                                value={newItemText}
+                                                onChange={(e) => setNewItemText(e.target.value)}
+                                                className="text-xs sm:text-sm"
+                                            />
+                                            <Button type="submit" size="default" className="cursor-pointer shrink-0">
+                                                <Plus className="size-4 mr-1" /> เพิ่ม
+                                            </Button>
+                                        </form>
 
-                                                {collections.length > 1 && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon-xs"
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleDeleteCollection(col.id);
-                                                        }}
-                                                        className={cn(
-                                                            "cursor-pointer",
-                                                            isActive
-                                                                ? "text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/20"
-                                                                : "text-muted-foreground hover:text-destructive"
-                                                        )}
-                                                        title="ลบหมวดหมู่นี้"
+                                        {/* รายการตัวเลือก */}
+                                        <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1 border border-border rounded-xl p-2 bg-muted/20">
+                                            {currentItems.map((item, idx) => {
+                                                const color = getItemColor(item, idx);
+                                                return (
+                                                    <div
+                                                        key={item.id}
+                                                        className="flex items-center justify-between px-3 py-2 bg-card rounded-lg text-xs sm:text-sm border border-border/70 transition-colors"
                                                     >
-                                                        <Trash2 className="size-3.5" />
-                                                    </Button>
-                                                )}
+                                                        <div className="flex items-center gap-2.5 min-w-0">
+                                                            <span
+                                                                className="size-3.5 rounded-full shrink-0 border border-black/10 shadow-2xs"
+                                                                style={{ backgroundColor: color }}
+                                                            />
+                                                            <span className="font-medium text-foreground truncate">
+                                                                {idx + 1}. {item.text}
+                                                            </span>
+                                                        </div>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon-xs"
+                                                            type="button"
+                                                            onClick={() => handleDeleteItem(item.id)}
+                                                            disabled={currentItems.length <= 2}
+                                                            className="text-muted-foreground hover:text-destructive cursor-pointer disabled:opacity-30"
+                                                            title={currentItems.length <= 2 ? "ต้องมีอย่างน้อย 2 รายการ" : "ลบตัวเลือกนี้"}
+                                                        >
+                                                            <Trash2 className="size-3.5" />
+                                                        </Button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </TabsContent>
+
+                                    {/* แท็บที่ 2: จัดการคอลเลคชั่นหมวดหมู่ */}
+                                    <TabsContent value="collections" className="space-y-4 pt-3">
+                                        <div className="space-y-2">
+                                            <span className="text-xs text-muted-foreground">
+                                                เลือกหมวดหมู่ที่ต้องการใช้งาน:
+                                            </span>
+                                            <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1 border border-border rounded-xl p-2 bg-muted/20">
+                                                {collections.map((col) => {
+                                                    const isActive = col.id === activeCollectionId;
+                                                    return (
+                                                        <div
+                                                            key={col.id}
+                                                            className={cn(
+                                                                "flex items-center justify-between px-3 py-2 rounded-lg text-xs sm:text-sm border transition-all cursor-pointer",
+                                                                isActive
+                                                                    ? "bg-primary text-primary-foreground border-primary font-medium"
+                                                                    : "bg-card text-card-foreground border-border/70 hover:bg-muted"
+                                                            )}
+                                                            onClick={() => handleSelectCollection(col.id)}
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                {isActive ? (
+                                                                    <Check className="size-4" />
+                                                                ) : (
+                                                                    <Bookmark className="size-3.5 text-muted-foreground" />
+                                                                )}
+                                                                <span>{col.name}</span>
+                                                                <span className={cn(
+                                                                    "text-xs px-2 py-0.5 rounded-full",
+                                                                    isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground"
+                                                                )}>
+                                                                    {col.items.length} รายการ
+                                                                </span>
+                                                            </div>
+
+                                                            {collections.length > 1 && (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon-xs"
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteCollection(col.id);
+                                                                    }}
+                                                                    className={cn(
+                                                                        "cursor-pointer",
+                                                                        isActive
+                                                                            ? "text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/20"
+                                                                            : "text-muted-foreground hover:text-destructive"
+                                                                    )}
+                                                                    title="ลบหมวดหมู่นี้"
+                                                                >
+                                                                    <Trash2 className="size-3.5" />
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
+                                        </div>
 
-                            {/* ฟอร์มสร้างหมวดหมู่ใหม่ */}
-                            <form onSubmit={handleCreateCollection} className="flex gap-2 pt-2 border-t border-border">
-                                <Input
-                                    type="text"
-                                    placeholder="ชื่อหมวดหมู่ใหม่..."
-                                    value={newCollectionName}
-                                    onChange={(e) => setNewCollectionName(e.target.value)}
-                                    className="text-xs sm:text-sm"
-                                />
-                                <Button type="submit" size="default" className="cursor-pointer shrink-0">
-                                    <FolderPlus className="size-4 mr-1" /> สร้าง
-                                </Button>
-                            </form>
-                        </TabsContent>
-                    </Tabs>
+                                        {/* ฟอร์มสร้างหมวดหมู่ใหม่ */}
+                                        <form onSubmit={handleCreateCollection} className="flex gap-2 pt-2 border-t border-border">
+                                            <Input
+                                                type="text"
+                                                placeholder="ชื่อหมวดหมู่ใหม่..."
+                                                value={newCollectionName}
+                                                onChange={(e) => setNewCollectionName(e.target.value)}
+                                                className="text-xs sm:text-sm"
+                                            />
+                                            <Button type="submit" size="default" className="cursor-pointer shrink-0">
+                                                <FolderPlus className="size-4 mr-1" /> สร้าง
+                                            </Button>
+                                        </form>
+                                    </TabsContent>
+                                </Tabs>
 
-                    <DialogFooter className="mt-4 pt-3 border-t border-border">
-                        <Button
-                            type="button"
-                            onClick={() => setIsManageDialogOpen(false)}
-                            className="w-full sm:w-auto cursor-pointer"
-                        >
-                            เสร็จสิ้น
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                                <DialogFooter className="mt-4 pt-3 border-t border-border">
+                                    <Button
+                                        type="button"
+                                        onClick={() => setIsManageDialogOpen(false)}
+                                        className="w-full sm:w-auto cursor-pointer"
+                                    >
+                                        เสร็จสิ้น
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
 
-            {/* ========================================================
+                        {/* ========================================================
                 Dialog: แสดงผลการสุ่มวงล้อ (Winner Result)
                ======================================================== */}
-            <Dialog open={isResultDialogOpen} onOpenChange={setIsResultDialogOpen}>
-                <DialogContent className="sm:max-w-md text-center">
-                    <DialogHeader className="items-center text-center">
-                        <div className="mx-auto size-14 rounded-full bg-linear-to-tr from-pink-100 via-amber-100 to-indigo-100 dark:from-pink-950 dark:via-amber-950 dark:to-indigo-950 flex items-center justify-center mb-1">
-                            <Sparkles className="size-7 text-pink-500 animate-bounce" />
-                        </div>
-                        <DialogTitle className="text-xl sm:text-2xl font-bold">
-                            ผลการสุ่มวงล้อ!
-                        </DialogTitle>
-                        <DialogDescription>
-                            วงล้อสีรุ้งพาสเทลได้เลือกตัวเลือกนี้ให้คุณแล้ว
-                        </DialogDescription>
-                    </DialogHeader>
+                        <Dialog open={isResultDialogOpen} onOpenChange={setIsResultDialogOpen}>
+                            <DialogContent className="sm:max-w-md text-center">
+                                <DialogHeader className="items-center text-center">
+                                    <div className="mx-auto size-14 rounded-full bg-linear-to-tr from-pink-100 via-amber-100 to-indigo-100 dark:from-pink-950 dark:via-amber-950 dark:to-indigo-950 flex items-center justify-center mb-1">
+                                        <Sparkles className="size-7 text-pink-500 animate-bounce" />
+                                    </div>
+                                    <DialogTitle className="text-xl sm:text-2xl font-bold">
+                                        ผลการสุ่มวงล้อ!
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        วงล้อสีรุ้งพาสเทลได้เลือกตัวเลือกนี้ให้คุณแล้ว
+                                    </DialogDescription>
+                                </DialogHeader>
 
-                    {/* กล่องแสดงผลผู้ชนะ */}
-                    <div className="my-4 p-6 rounded-2xl bg-muted/40 border border-border flex flex-col items-center justify-center gap-3">
-                        <span
-                            className="size-5 rounded-full border border-black/10 shadow-xs"
-                            style={{
-                                backgroundColor: winnerItem?.color || PASTEL_RAINBOW_COLORS[0],
-                            }}
-                        />
-                        <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight break-words px-2">
-                            {winner}
-                        </h2>
-                        <Badge variant="outline" className="text-xs text-muted-foreground mt-1">
-                            {activeCollection.name}
-                        </Badge>
+                                {/* กล่องแสดงผลผู้ชนะ */}
+                                <div className="my-4 p-6 rounded-2xl bg-muted/40 border border-border flex flex-col items-center justify-center gap-3">
+                                    <span
+                                        className="size-5 rounded-full border border-black/10 shadow-xs"
+                                        style={{
+                                            backgroundColor: winnerItem?.color || PASTEL_RAINBOW_COLORS[0],
+                                        }}
+                                    />
+                                    <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight break-words px-2">
+                                        {winner}
+                                    </h2>
+                                    <Badge variant="outline" className="text-xs text-muted-foreground mt-1">
+                                        {activeCollection.name}
+                                    </Badge>
+                                </div>
+
+                                {/* ส่วนขวา: วงล้อสุ่ม และผลลัพธ์ (7 columns) */}
+                                <div className="lg:col-span-7 flex flex-col items-center justify-center bg-white p-8 rounded-2xl border border-neutral-200 shadow-sm relative overflow-hidden">
+
+                                    {/* ตัวชี้เข็มหมุดด้านบน */}
+                                    <div className="absolute top-4 z-10 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[18px] border-t-rose-500 drop-shadow-md" />
+
+                                    {/* Canvas วงล้อ */}
+                                    <div className="relative my-4">
+                                        <canvas
+                                            ref={canvasRef}
+                                            width={320}
+                                            height={320}
+                                            className="max-w-full h-auto drop-shadow-md transition-transform"
+                                        />
+                                    </div>
+
+                                    {/* ปุ่มกดหมุน */}
+                                    <button
+                                        onClick={spinWheel}
+                                        disabled={isSpinning || currentItems.length === 0}
+                                        className={`mt-4 px-8 py-3 rounded-xl text-sm font-medium tracking-wide transition flex items-center gap-2 shadow-sm cursor-pointer ${isSpinning
+                                            ? "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                                            : "bg-neutral-900 text-white hover:bg-neutral-800 active:scale-98"
+                                            }`}
+                                    >
+                                        <RotateCw className={`w-4 h-4 ${isSpinning ? "animate-spin" : ""}`} />
+                                        {isSpinning ? "กำลังหมุน..." : "หมุนวงล้อ"}
+                                    </button>
+
+                                    {/* แสดงผลผู้ชนะ */}
+                                    {winner && (
+                                        <div className="mt-6 p-4 bg-linear-to-r from-rose-50/60 via-amber-50/60 to-indigo-50/60 border border-neutral-200 rounded-xl text-center w-full max-w-xs animate-fade-in shadow-xs">
+                                            <span className="text-xs text-neutral-500 uppercase tracking-wider block mb-1">ผลลัพธ์ที่ได้</span>
+                                            <span className="text-lg font-semibold text-neutral-800 flex items-center justify-center gap-1.5">
+                                                <Sparkles className="w-4 h-4 text-amber-500" /> {winner}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                </div>
+
+                            </div>
+
                     </div>
-
-                    <DialogFooter className="flex-col sm:flex-row gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsResultDialogOpen(false)}
-                            className="w-full sm:w-auto cursor-pointer"
-                        >
-                            ปิด
-                        </Button>
-
-                        {currentItems.length > 2 && (
-                            <Button
-                                variant="destructive"
-                                onClick={handleRemoveWinnerAndClose}
-                                className="w-full sm:w-auto cursor-pointer"
-                            >
-                                <Trash2 className="size-4 mr-1.5" /> ลบตัวเลือกนี้ออก
-                            </Button>
-                        )}
-
-                        <Button
-                            variant="default"
-                            onClick={handleSpinAgainFromDialog}
-                            className="w-full sm:w-auto cursor-pointer"
-                        >
-                            <RotateCw className="size-4 mr-1.5" /> หมุนอีกครั้ง
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-        </main>
-    );
+                </main>
+                );
 }
